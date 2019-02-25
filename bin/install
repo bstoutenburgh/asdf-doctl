@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+install_doctl() {
+  local version=$2
+  local install_path=$3
+  local bin_install_path="${install_path}/bin"
+  local binary_path="${bin_install_path}/doctl"
+  local url_prefix="https://github.com/digitalocean/doctl/releases/download/v${version}"
+  local checksum_url
+  checksum_url="${url_prefix}"/$(get_filename "${version}" 'sha256')
+  local tarball_url
+  tarball_url="${url_prefix}"/$(get_filename "${version}" 'tar.gz')
+  local checksum_download_path
+  local tarball_download_path
+  local tmp_download_dir
+
+  if [ "${TMPDIR}" = "" ]; then
+    tmp_download_dir=$(mktemp -d -t doctl_XXXXXX)
+  else
+    tmp_download_dir="${TMPDIR}"
+  fi
+
+  checksum_download_path="${tmp_download_dir}"/$(get_filename "${version}" 'sha256')
+  tarball_download_path="${tmp_download_dir}"/$(get_filename "${version}" 'tar.gz')
+
+  echo "Downloading doctl from ${tarball_url}"
+  curl -Lo "${tarball_download_path}" "${tarball_url}"
+
+  echo "Downloading checksum from ${checksum_url}"
+  curl -Lo "${checksum_download_path}" "${checksum_url}"
+
+  echo "Creating bin directory"
+  mkdir -p "${bin_install_path}"
+
+  echo "Cleaning previous binaries"
+  rm -f "${binary_path}" 2>/dev/null || true
+
+  echo "Copying binary"
+  tar xf "${tarball_download_path}" -C "${bin_install_path}"
+  chmod +x "${binary_path}"
+
+  echo "Verifying binary"
+  pushd "${bin_install_path}"
+  shasum --algorithm 256 --check "${checksum_download_path}"
+  popd
+
+  echo "Cleaning up downloads"
+  rm -f "${checksum_download_path}" "${tarball_download_path}"
+}
+
+get_platform() {
+  [ "Linux" = "$(uname)" ] && echo "linux" || echo "darwin-10.6"
+}
+
+get_filename() {
+  local version=$1
+  local extension=$2
+  local platform
+  platform="$(get_platform)"
+
+  echo "doctl-${version}-${platform}-amd64.${extension}"
+}
+
+install_doctl "${ASDF_INSTALL_TYPE}" "${ASDF_INSTALL_VERSION}" "${ASDF_INSTALL_PATH}"
