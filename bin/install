@@ -42,9 +42,9 @@ install_doctl() {
   tar xf "${tarball_download_path}" -C "${bin_install_path}"
   chmod +x "${binary_path}"
 
-  echo "Verifying binary"
+  echo "Verifying binary
   pushd "${bin_install_path}"
-  shasum --algorithm 256 --check "${checksum_download_path}"
+  shasum --algorithm 256 --check --ignore-missing "${checksum_download_path}"
   popd
 
   echo "Cleaning up downloads"
