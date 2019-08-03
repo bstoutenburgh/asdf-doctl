@@ -4,8 +4,8 @@ set -e
 set -o pipefail
 
 install_doctl() {
-  local version=$2
-  local install_path=$3
+  local version="$2"
+  local install_path="$3"
   local bin_install_path="${install_path}/bin"
   local binary_path="${bin_install_path}/doctl"
   local url_prefix="https://github.com/digitalocean/doctl/releases/download/v${version}"
@@ -18,7 +18,7 @@ install_doctl() {
   local tmp_download_dir
 
   if [ "${TMPDIR}" = "" ]; then
-    tmp_download_dir=$(mktemp -d -t doctl_XXXXXX)
+    tmp_download_dir="$(mktemp -d -t doctl_XXXXXX)"
   else
     tmp_download_dir="${TMPDIR}"
   fi
@@ -52,16 +52,20 @@ install_doctl() {
 }
 
 get_platform() {
-  [ "Linux" = "$(uname)" ] && echo "linux" || echo "darwin-10.6"
+  [ "Linux" = "$(uname)" ] && echo "linux" || echo "darwin"
 }
 
 get_filename() {
-  local version=$1
-  local extension=$2
   local platform
-  platform="$(get_platform)"
+  local version="$1"
+  local extension="$2"
+  if [[ ${extension} == "sha256" ]]; then
+    platform="checksums"
+  else
+    platform="$(get_platform)-amd64"
+  fi
 
-  echo "doctl-${version}-${platform}-amd64.${extension}"
+  echo -n "doctl-${version}-${platform}.${extension}"
 }
 
 install_doctl "${ASDF_INSTALL_TYPE}" "${ASDF_INSTALL_VERSION}" "${ASDF_INSTALL_PATH}"
