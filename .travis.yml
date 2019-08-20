@@ -1,5 +1,7 @@
 language: c
 script: asdf plugin-test doctl $TRAVIS_BUILD_DIR 'doctl version'
+before_install:
+  - shellcheck bin/*
 before_script:
   - git clone https://github.com/asdf-vm/asdf.git
   - . asdf/asdf.sh
