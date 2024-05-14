@@ -12,12 +12,14 @@ install_doctl() {
   local -r binary_path="${bin_install_path}/doctl"
 
   local platform
+  local arch
   local download_url
   local download_path
 
   platform=$(get_platform)
-  download_url=$(get_download_url "$version" "$platform")
-  download_path="${tmp_download_dir}"/$(get_filename "$version" "$platform")
+  arch=$(get_arch)
+  download_url=$(get_download_url "$version" "$platform" "$arch")
+  download_path="${tmp_download_dir}"/$(get_filename "$version" "$platform" "$arch")
 
   echo "Downloading doctl from ${download_url}"
   curl -Lo "${download_path}" "${download_url}"
@@ -40,18 +42,28 @@ get_platform() {
   uname | tr '[:upper:]' '[:lower:]'
 }
 
+get_arch() {
+    local arch=$(uname -m)
+    if [ "$arch" = "x86_64" ]; then
+        arch="amd64"
+    fi
+    echo $arch
+}
+
 get_filename() {
   local -r version=$1
   local -r platform=$2
+  local -r arch=$3
 
-  echo "doctl-${version}-${platform}-amd64.tar.gz"
+  echo "doctl-${version}-${platform}-${arch}.tar.gz"
 }
 
 get_download_url() {
   local -r version=$1
   local -r platform=$2
+  local -r arch=$3
   local filename
-  filename=$(get_filename "$version" "$platform")
+  filename=$(get_filename "$version" "$platform" "$arch")
 
   echo "https://github.com/digitalocean/doctl/releases/download/v${version}/${filename}"
 }
