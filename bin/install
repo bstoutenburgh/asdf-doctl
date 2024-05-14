@@ -43,7 +43,11 @@ get_platform() {
 }
 
 get_arch() {
-  uname -m
+    local arch=$(uname -m)
+    if [ "$arch" = "x86_64" ]; then
+        arch="amd64"
+    fi
+    echo $arch
 }
 
 get_filename() {
