@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for <YOUR TOOL>.
 GH_REPO="https://github.com/digitalocean/doctl"
 TOOL_NAME="doctl"
 TOOL_TEST="doctl version"
@@ -39,12 +38,34 @@ download_release() {
 	local version filename url
 	version="$1"
 	filename="$2"
+	platform="$(get_platform)"
+	arch="$(get_arch)"
 
-	# TODO: Adapt the release URL convention for <YOUR TOOL>
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${version}-${platform}-${arch}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
+}
+
+get_platform() {
+	local kernel
+	kernel="$(uname -s)"
+	if [[ ${OSTYPE} == "msys" || ${kernel} == "CYGWIN"* || ${kernel} == "MINGW"* ]]; then
+		echo windows
+	else
+		uname | tr '[:upper:]' '[:lower:]'
+	fi
+}
+
+get_arch() {
+    local arch
+		arch=$(uname -m)
+    if [ "$arch" = "x86_64" ]; then
+      arch="amd64"
+		elif [ "$arch" = "i686" ]; then
+		  arch="386"
+    fi
+    echo "${arch}"
 }
 
 install_version() {
@@ -60,7 +81,6 @@ install_version() {
 		mkdir -p "$install_path"
 		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
 
-		# TODO: Assert <YOUR TOOL> executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
