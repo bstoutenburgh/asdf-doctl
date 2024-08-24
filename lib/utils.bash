@@ -58,14 +58,16 @@ get_platform() {
 }
 
 get_arch() {
-	local arch
-	arch=$(uname -m)
-	if [ "$arch" = "x86_64" ]; then
-		arch="amd64"
-	elif [ "$arch" = "i686" ]; then
-		arch="386"
-	fi
-	echo "${arch}"
+	ARCH=$(uname -m)
+	case $ARCH in
+		armv*) ARCH="arm";;
+		aarch64) ARCH="arm64";;
+		x86) ARCH="386";;
+		x86_64) ARCH="amd64";;
+		i686) ARCH="386";;
+		i386) ARCH="386";;
+	esac
+	echo "$ARCH"
 }
 
 install_version() {
