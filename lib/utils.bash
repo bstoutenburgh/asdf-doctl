@@ -40,12 +40,20 @@ download_release() {
 	filename="$2"
 	platform="$(get_platform)"
 	arch="$(get_arch)"
+	local extension='tar.gz'
 
-	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${version}-${platform}-${arch}.tar.gz"
+  if [ "$platform" == "windows" ]; then
+    extension='zip'
+  fi
+
+	# TODO: handle older than 1.21.1?
+
+	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${version}-${platform}-${arch}.${extension}"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
 }
+
 
 get_platform() {
 	local kernel
@@ -58,14 +66,18 @@ get_platform() {
 }
 
 get_arch() {
-	local arch
-	arch=$(uname -m)
-	if [ "$arch" = "x86_64" ]; then
-		arch="amd64"
-	elif [ "$arch" = "i686" ]; then
-		arch="386"
-	fi
-	echo "${arch}"
+  local arch
+
+  case "$(uname -m)" in
+  x86_64 | amd64) arch="amd64" ;;
+  i686 | i386) arch="386" ;;
+  aarch64 | arm64) arch="arm64" ;;
+  *)
+    fail "Arch '$(uname -m)' not supported!"
+    ;;
+  esac
+
+  echo -n $arch
 }
 
 install_version() {
