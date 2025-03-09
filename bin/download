@@ -10,13 +10,24 @@ source "${plugin_dir}/lib/utils.bash"
 
 mkdir -p "$ASDF_DOWNLOAD_PATH"
 
-release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.tar.gz"
+# TODO: release_file for Windows is zip, need to adjust everything to allow for that
+platform="$(get_platform)"
+if [ "$platform" == "windows" ]; then
+  extension='zip'
+else
+  extension='tar.gz'
+fi
+release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.$extension"
 
-# Download tar.gz file to the download directory
+# Download release file to the download directory
 download_release "$ASDF_INSTALL_VERSION" "$release_file"
 
-#  Extract contents of tar.gz file into the download directory
-tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+#  Extract contents of release file into the download directory
+if [ "$platform" == "windows" ]; then
+  unzip "$release_file" -d "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+else
+  tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+fi
 
-# Remove the tar.gz file since we don't need to keep it
+# Remove the release file since we don't need to keep it
 rm "$release_file"
