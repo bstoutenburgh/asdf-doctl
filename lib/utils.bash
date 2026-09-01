@@ -64,6 +64,8 @@ get_arch() {
 		arch="amd64"
 	elif [ "$arch" = "i686" ]; then
 		arch="386"
+	elif [ "$arch" = "aarch64" ]; then
+		arch="arm64"
 	fi
 	echo "${arch}"
 }
